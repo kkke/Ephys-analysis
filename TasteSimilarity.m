@@ -58,4 +58,45 @@ for j=1:214
     else
     end
 end
+%% 
+% recalculate the psth for each taste response
+tasteN = Sum(Idx);
+for i = 1:length(tasteN) % reorganize the data
+    tastepsth(i).M = tasteN(i).PSTH.RightRew.Maltose;
+    tastepsth(i).O = tasteN(i).PSTH.RightRew.Octacetate;
+    tastepsth(i).S = tasteN(i).PSTH.LeftRew.Sucrose;
+    tastepsth(i).Q = tasteN(i).PSTH.LeftRew.Quinine;
+end
+
+taste = {'S', 'M', 'Q','O'};
+for i = 1:length(tasteN) % recalculate the psth with 25 ms as bin size, and only take from 0 to 500 ms
+    for j = 1:length(taste)
+        tastepsth_bin25(i).(taste{j}) = spike2eventRasteandPSTH_NP(tastepsth(i).(taste{j}).Spike, tastepsth(i).(taste{j}).Event, 50,-500,500);
+    end
+    fprintf('Finish processing neuron # %0.f\n',i)
+end
+%% Normalize the firing rate with auROC
+for i = 1:length(tasteN) % recalculate the psth with 25 ms as bin size, and only take from 0 to 500 ms
+    for j = 1:length(taste)
+        tastepsth_bin25_norm(i).(taste{j}) = psth_auROC(tastepsth_bin25(i).(taste{j}).FRmatrix,0.5, 50);
+    end
+    fprintf('Finish processing neuron # %0.f\n',i)
+end
 %%
+taste = {'S', 'M', 'Q','O'};
+clear X
+for i = 1:length(tastepsth_bin25_norm)
+    for j = 1:length(taste)
+%         X(j,:) = tastepsth_bin25_norm(i).(taste{j})(10:20); % from time 0 to time 0.5s
+          X(j,:) = tastepsth_bin25(i).(taste{j}).FR_avg(10:20)
+    end
+%     D = pdist(X,'correlation');
+    D = pdist(X);
+    Z = squareform(D);
+    DistMatrix(:,:,:,i) = Z;
+    DistArray(i,:) = D;
+end
+Idx_nan = find(isnan((mean(DistArray,2))));
+DistMatrix(:,:,:,Idx_nan) = [];
+DisMatrix_m = mean(DistMatrix,4);
+anova1(DistArray)
