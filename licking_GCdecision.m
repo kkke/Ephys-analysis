@@ -48,41 +48,21 @@ duration_temp = struct2table(duration);
 writetable(duration_temp,'Central-licking.xls','sheet',1)
 writetable(iti,'Central-licking.xls','sheet',2)
 
-%%% plot the result and perform the statistic test
+%% plot the result and perform the statistic test
 temp = duration;
 temp = rmfield(temp,'id');
 temp = cell2mat(squeeze(struct2cell(temp))');
 
 control = temp;
-m1 = mean(control(:,1));
-m2 = mean(control(:,2));
-m3 = mean(control(:,3));
-m4 = mean(control(:,4));
-
+bar_plot_multi(control)
 name = {[],'S','M','SO','Q',[]}
-sem1 = std(control(:,1))./sqrt(length(control(:,3)));
-sem2 = std(control(:,2))./sqrt(length(control(:,3)));
-sem3 = std(control(:,3))./sqrt(length(control(:,3)));
-sem4 = std(control(:,4))./sqrt(length(control(:,4)));
-
-figure;
-bar(1,m1,'EdgeColor',[0 0 0],'FaceColor',[0.5,0.5,1],'LineWidth',1);hold on
-bar(2,m2,'EdgeColor',[0 0 0],'FaceColor',[1,0.5,0.25],'LineWidth',1);hold on
-bar(3,m3,'EdgeColor',[0 0 0],'FaceColor',[1,0.5,0.25],'LineWidth',1);hold on
-bar(4,m4,'EdgeColor',[0 0 0],'FaceColor',[1,0.5,0.25],'LineWidth',1);hold on
-
 set(gca,'XTick',0:5)
 set(gca,'xticklabel',name)
 ylabel('Sampling duration (s)')
-hold on;
-e=errorbar([m1, m2, m3, m4], [sem1, sem2, sem3, sem4],'LineWidth',1.5);
-% plot([1 1],[mean(a_m) mean(a_m)+a_sem],'r');hold on;
-e.Color ='k';
-e.LineStyle = 'none';
 
 %%%%% perform one-way anova
-temp = temp(:,1:4); % use compare duration for each tastant
-p = anova1(temp)
+% temp = temp(:,1:4); % use compare duration for each tastant
+% p = anova1(temp)
 %% Calculate the delay 
 close all
 clearvars -except data duration
@@ -125,51 +105,33 @@ for i = 1:length(id_uni)
 end
 clearvars -except data duration timing
 
-
-% plot the result and perform the statistic test
+%% plot the duration for the delay
 temp = timing;
 temp = rmfield(temp,'id');
 temp = cell2mat(squeeze(struct2cell(temp))'); % the first collumn is the left delay and the 3rd collumn is the right delay
 
 control = temp;
-m1 = mean(control(:,1));
-m2 = mean(control(:,3));
+barplot_test(control(:,1), control(:,3))
 name = {[],'Left','Right',[]}
-sem1 = std(control(:,1))./sqrt(length(control(:,1)));
-sem2 = std(control(:,3))./sqrt(length(control(:,3)));
-figure;
-bar(1,m1,'EdgeColor',[0 0 0],'FaceColor',[0.5,0.5,1],'LineWidth',1);hold on
-bar(2,m2,'EdgeColor',[0 0 0],'FaceColor',[1,0.5,0.25],'LineWidth',1);hold on
-set(gca,'XTick',0:3)
 set(gca,'xticklabel',name)
 ylabel('Delay (s)')
-hold on;
-e=errorbar([m1, m2], [sem1, sem2],'LineWidth',1.5);
-e.Color ='k';
-e.LineStyle = 'none';
 ylim([0,3])
 % perform the t-test
-[h,p] = ttest2(temp(:,1),temp(:,3));
-%%
-figure;
-m3 = mean(control(:,2));
-m4 = mean(control(:,4));
-sem3 = std(control(:,2))./sqrt(length(control(:,2)));
-sem4 = std(control(:,4))./sqrt(length(control(:,4)));
-bar(1,m3,'EdgeColor',[0 0 0],'FaceColor',[1,0.5,0.25],'LineWidth',1);hold on
-bar(2,m4,'EdgeColor',[0 0 0],'FaceColor',[1,0.5,0.25],'LineWidth',1);hold on
-set(gca,'XTick',0:3)
+% [h,p] = ttest2(temp(:,1),temp(:,3));
+%% plot the duration for lateral licking
+barplot_test(control(:,2), control(:,4))
 set(gca,'xticklabel',name)
 ylabel('Lateral licking (s)')
-hold on;
-e=errorbar([m3, m4], [ sem3, sem4],'LineWidth',1.5);
-% plot([1 1],[mean(a_m) mean(a_m)+a_sem],'r');hold on;
-e.Color ='k';
-e.LineStyle = 'none';
-
-% perform the t-test
-[h,p] = ttest2(temp(:,2),temp(:,4));
 ylim([0,2])
+% perform the t-test
+% [h,p] = ttest2(temp(:,2),temp(:,4));
+
+%% Save the results as table 
+timing = struct2table(timing);
+timing_temp = struct2table(duration);
+
+writetable(timing,'Timing_delay_lateral.xls','sheet',1)
+% writetable(iti,'Central-licking.xls','sheet',2)
 %% calculate the performance for each tastant
 clearvars -except data duration timing
 for i = 1:length(data)
@@ -210,36 +172,14 @@ clearvars -except data duration timing performance
 temp = performance;
 temp = rmfield(temp,'id');
 temp = cell2mat(squeeze(struct2cell(temp))');
-
-control = temp;
-m1 = mean(control(:,1));
-m2 = mean(control(:,2));
-m3 = mean(control(:,3));
-m4 = mean(control(:,4));
-
+bar_plot_multi(temp)
 name = {[],'S','M','SO','Q',[]}
-sem1 = std(control(:,1))./sqrt(length(control(:,3)));
-sem2 = std(control(:,2))./sqrt(length(control(:,3)));
-sem3 = std(control(:,3))./sqrt(length(control(:,3)));
-sem4 = std(control(:,4))./sqrt(length(control(:,4)));
-
-figure;
-bar(1,m1,'EdgeColor',[0 0 0],'FaceColor',[0.5,0.5,1],'LineWidth',1);hold on
-bar(2,m2,'EdgeColor',[0 0 0],'FaceColor',[1,0.5,0.25],'LineWidth',1);hold on
-bar(3,m3,'EdgeColor',[0 0 0],'FaceColor',[1,0.5,0.25],'LineWidth',1);hold on
-bar(4,m4,'EdgeColor',[0 0 0],'FaceColor',[1,0.5,0.25],'LineWidth',1);hold on
-
-set(gca,'XTick',0:5)
 set(gca,'xticklabel',name)
 ylabel('Performance')
-hold on;
-e=errorbar([m1, m2, m3, m4], [sem1, sem2, sem3, sem4],'LineWidth',1.5);
-% plot([1 1],[mean(a_m) mean(a_m)+a_sem],'r');hold on;
-e.Color ='k';
-e.LineStyle = 'none';
 ylim([0,1])
 %% perform one-way anova
 temp = temp(:,1:4); % use compare duration for each tastant
 p = anova1(temp)
-%%
- 
+%%timing = struct2table(timing);
+performance = struct2table(performance);
+writetable(performance,'Performance.xls','sheet',1)
