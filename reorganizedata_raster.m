@@ -1,5 +1,5 @@
 %% reorganize data into raster format
-Sum = data_taste;
+% Sum = data_taste;
 for k = 1:length(Sum)
     spike = Sum(k).PSTH.RightRew.Corr.Spike;
     event.S = Sum(k).PSTH.LeftRew.Sucrose.Event;
@@ -13,7 +13,7 @@ for k = 1:length(Sum)
     for i = 1:length(I)
         event_order(i,:) = event_sum(I(i),:);
     end
-    unit = spike2eventRasteandPSTH_NP(spike,event_order,100,-1500,2500);
+    unit = spike2eventRasteandPSTH_NP(spike,event_order,1,-1500,2500); % use 1 ms to construct the raster format
     raster_data = unit.scmatrix;
     for i = 1:length(event_order)
         switch event_order(i,2)
