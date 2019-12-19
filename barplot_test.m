@@ -29,4 +29,6 @@ else
     fprintf('Normal distribution, use t-test\n')
 end
 text(2,(b_m)*1.2,['p=' num2str(p)],'FontSize',12)
+% name = {'','No stimulation','Light stimulation',''}
+% set(gca,'xticklabel',name)
 hold off

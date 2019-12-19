@@ -58,7 +58,9 @@ for j=1:214
     else
     end
 end
-%% 
+%% get the taste event for error trials
+Sum = tsTasteError(Sum);
+%%
 % recalculate the psth for each taste response
 tasteN = Sum(Idx);
 for i = 1:length(tasteN) % reorganize the data
@@ -69,12 +71,29 @@ for i = 1:length(tasteN) % reorganize the data
 end
 
 taste = {'S', 'M', 'Q','O'};
-for i = 1:length(tasteN) % recalculate the psth with 25 ms as bin size, and only take from 0 to 500 ms
+for i = 1:length(tasteN) % recalculate the psth with 50 ms as bin size, and only take from 0 to 500 ms
     for j = 1:length(taste)
-        tastepsth_bin25(i).(taste{j}) = spike2eventRasteandPSTH_NP(tastepsth(i).(taste{j}).Spike, tastepsth(i).(taste{j}).Event, 50,-500,500);
+        tastepsth_bin25(i).(taste{j}) = spike2eventRasteandPSTH_NP(tastepsth(i).(taste{j}).Spike, tastepsth(i).(taste{j}).Event, 50,0,500);
     end
     fprintf('Finish processing neuron # %0.f\n',i)
 end
+%% for error trials for decoding purpose
+tasteN = Sum(Idx);
+for i = 1:length(tasteN) % reorganize the data
+    Errortastepsth(i).M = tasteN(i).event.tsRErr.TasteID.M;
+    Errortastepsth(i).O = tasteN(i).event.tsRErr.TasteID.O;
+    Errortastepsth(i).S = tasteN(i).event.tsLErr.TasteID.S;
+    Errortastepsth(i).Q = tasteN(i).event.tsLErr.TasteID.Q;
+end
+
+taste = {'S', 'M', 'Q','O'};
+for i = 1:length(tasteN) % recalculate the psth with 50 ms as bin size, and only take from 0 to 500 ms
+    for j = 1:length(taste)
+        Error_tastepsth_bin25(i).(taste{j}) = spike2eventRasteandPSTH_NP(tasteN(i).timestampN, Errortastepsth(i).(taste{j}), 50,0,500);
+    end
+    fprintf('Finish processing neuron # %0.f\n',i)
+end
+
 %% Normalize the firing rate with auROC
 for i = 1:length(tasteN) % recalculate the psth with 25 ms as bin size, and only take from 0 to 500 ms
     for j = 1:length(taste)

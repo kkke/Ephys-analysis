@@ -85,25 +85,25 @@ plot([-2,2],[0,0],'--k')
 % scatter(corP(cccc),errorP(cccc),'c','fill')
 
 %% Plot the significant preference within error trials
-% k = 1;
-% for i = 1:length(stats)
-%     if stats(i).resp ==1
-%         idx_sig(k) = i;
-%         k = k+1;
-%     end
-% end
-% hold on
-% iDX2 = idx_sig;
-% errorP = p(iDX2);
-% corIdx = Idx(iDX2);
-% clear corP
-% for i = 1:length(corIdx)
-%     corP(i) = Sum(corIdx(i)).auROC.PlanRcorr_vsLcorr.p;
-% end
-% figure;
-% scatter(corP, errorP,'r')
-% xlim([-2,2])
-% ylim([-2,2])
+k = 1;
+for i = 1:length(stats)
+    if stats(i).resp ==1
+        idx_sig(k) = i;
+        k = k+1;
+    end
+end
+hold on
+iDX2 = idx_sig;
+errorP = p(iDX2);
+corIdx = Idx(iDX2);
+clear corP
+for i = 1:length(corIdx)
+    corP(i) = Sum(corIdx(i)).auROC.PlanRcorr_vsLcorr.p;
+end
+figure;
+scatter(corP, errorP,'r')
+xlim([-2,2])
+ylim([-2,2])
 % hold on
 % plot([0,0],[-2,2],'--k')
 % plot([-2,2],[0,0],'--k')
@@ -118,6 +118,7 @@ xlim([-2,2])
 ylim([-2,2])
 hold on
 plot([0,0],[-2,2],'--k')
+
 plot([-2,2],[0,0],'--k')
 linearcorrelation(corP(taste_idx), errorP(taste_idx))
 xlabel('Corrects: planning preference')
@@ -139,7 +140,7 @@ title('Neurons mainly with direction selectiviy')
 save('ResultsForCompareCorrectErrors.mat','plan_idx','taste_idx','corP','errorP','iDX2')
 %%
 type = {'Left','Right'};
-PSTH_auROC_R = zeros(93,70);
+PSTH_auROC_R = zeros(89,70);
 for i = 1:length(Idx)
     right = Sum(Idx(i)).event.tsRErr.FLickRSpou;
     left  = Sum(Idx(i)).event.tsLErr.FLickRSpou;
@@ -152,30 +153,59 @@ for i = 1:length(Idx)
     end
 end
 %% for left trial: I mean the neural activity is left preferential
-[~,left] = intersect(Idx,Idx_lp);
-[~,right] = intersect(Idx,Idx_rp);
-psth_left_error = PSTH_auROC_R(left,:);
-psth_right_error = PSTH_auROC_R(right,:);
-psth_left_error(~any(~isnan(psth_left_error),2),:)=[];
-psth_right_error(~any(~isnan(psth_right_error),2),:)=[];
+% Timecourse_decision(Sum,Idx,Idx_dir,bothnon) % bothnon represent taste selective, iDX2 represent more than 10 error trials
+% non = setdiff(1:89,bothnon);
+% Timecourse_decision(Sum,Idx,Idx_dir,setdiff(1:89,bothnon)) % non represent exclusive selective, iDX2 represent more than 10 error trials
 
-figure
-m_auROC= mean(psth_right_error,1);
-sem_auROC = std(psth_right_error,1)/sqrt(size(psth_right_error,1));
-time = unit.right.timepoint;
-h1= boundedline(time,m_auROC,sem_auROC,'r');
-ylim([-0.4,0.4])
-hold on
-m_auROC= mean(psth_left_error,1);
-sem_auROC = std(psth_left_error,1)/sqrt(size(psth_left_error,1));
-time = unit.left.timepoint;
-h2= boundedline(time,m_auROC,sem_auROC);
-ylim([-0.4,0.4])
-legend([h1,h2],{'Right Selective','Left Selective'})
-%%
-for i = 1:length(Sum)
-    Idx(i) = Sum(i).auROC.PlanRcorr_vsLcorr.stats.respFlag;
-    Idx_dir(i) = Sum(i).auROC.PlanRcorr_vsLcorr.p;
+Sum2 = Sum(Idx(iDX2)); % preparatory neurons with more than 10 error trials for both left and right trials
+for i = 1:length(Sum2)
+    Idx2(i) = Sum2(i).auROC.PlanRcorr_vsLcorr.stats.respFlag;
+    Idx_dir2(i) = Sum2(i).auROC.PlanRcorr_vsLcorr.p;
 end
-Timecourse_decision(Sum,Idx,Idx_dir)
-title('Planning')
+[~,Idx_taste,~] = intersect(iDX2,bothnon);
+non = setdiff(1:89,bothnon);
+[~,Idx_prep,~] = intersect(iDX2,non);
+
+Timecourse_decision(Sum2,Idx2,Idx_dir2,Idx_taste)
+Timecourse_decision(Sum2,Idx2,Idx_dir2,Idx_prep)
+
+% calculate the direction preference for left-prefered neurons
+
+
+
+
+
+
+
+% title('Taste-selective preparatory response')
+% [~,left] = intersect(Idx,Idx_lp);
+% % [~,left] = intersect(Idx,intersect(Idx(plan_idx),Idx_lp));
+% % 
+% % [~,right] = intersect(Idx,intersect(Idx(plan_idx),Idx_rp));
+% 
+% [~,right] = intersect(Idx,Idx_rp);
+% psth_left_error = PSTH_auROC_R(intersect(left,iDX2(plan_idx)),:);
+% psth_right_error = PSTH_auROC_R(intersect(right,iDX2(plan_idx)),:);
+% psth_left_error(~any(~isnan(psth_left_error),2),:)=[];
+% psth_right_error(~any(~isnan(psth_right_error),2),:)=[];
+% 
+% figure
+% m_auROC= mean(psth_right_error,1);
+% sem_auROC = std(psth_right_error,1)/sqrt(size(psth_right_error,1));
+% time = unit.right.timepoint;
+% h1= boundedline(time,m_auROC,sem_auROC,'r');
+% ylim([-0.4,0.4])
+% hold on
+% m_auROC= mean(psth_left_error,1);
+% sem_auROC = std(psth_left_error,1)/sqrt(size(psth_left_error,1));
+% time = unit.left.timepoint;
+% h2= boundedline(time,m_auROC,sem_auROC);
+% ylim([-0.4,0.4])
+% legend([h1,h2],{'Right Selective','Left Selective'})
+% %%
+% for i = 1:length(Sum)
+%     Idx(i) = Sum(i).auROC.PlanRcorr_vsLcorr.stats.respFlag;
+%     Idx_dir(i) = Sum(i).auROC.PlanRcorr_vsLcorr.p;
+% end
+% Timecourse_decision(Sum,Idx,Idx_dir)
+% title('Planning')

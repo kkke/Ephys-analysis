@@ -56,6 +56,7 @@ if numel(trigger.test)~=numev
     fprintf('error: # of conditions in training, testing sets are different!');
     return;
 end
+
 ntrials=struct('train',zeros(1,numev),'test',zeros(1,numev));
 for E=1:numev
     ntrials.train(E)=size(spikes_train.(trigger.train{E}),1);
@@ -64,9 +65,9 @@ end
 nunits=size(spikes_train.(trigger.train{E}),2);
 
 % default options
-% type='pop';
-binsize=0.2;
-window=[-1 1];
+type='pop';
+binsize=0.1;
+windows=[-1 1];
 xval=2; % hold-res in cross-validation
 nbag=1;
 nboot=100;
@@ -94,7 +95,7 @@ end
 
 
 % BINS - trick to create sliding window
-bin0=window(1):binsize:window(2);
+bin0=windows(1):binsize:windows(2);
 % no moving window
 slidewindow=bin0;
 xbins=slidewindow(2:end);

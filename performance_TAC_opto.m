@@ -202,7 +202,7 @@ end
 % delay_duration    = lateral-central_last;
 k=1;
 %%
-switch delay_idx
+switch delay_idx % whether it is for delay epoch.
     %% for delay
     case 1
         for i = 1: size(trial.raw_decision,1)
@@ -225,3 +225,13 @@ switch delay_idx
         end
 end
 sumData.stiTrial = sti;
+performance_sti(:,1) = cell2mat(trial.raw_decision(sti,3));
+performance_sti(:,2) = cell2mat(trial.raw_decision(sti,2));
+L_R = length(find(performance_sti(:,2)==1))/(length(find(performance_sti(:,2)==1))+length(find(performance_sti(:,2)==2)));
+avg_per_sti = sum(performance_sti(:,1))/size(performance_sti,1);
+%% get the performance of the trials without stimulation
+perf = cell2mat(trial.raw_decision(:,3));
+perf(sti)=[];
+avg_per_non = sum(perf)/length(perf);
+sumData.avg_per_sti = avg_per_sti; % trials with light stimulation
+sumData.avg_per_non =avg_per_non;  % trials without light stimulation

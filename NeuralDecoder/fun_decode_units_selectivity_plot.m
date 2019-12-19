@@ -1,14 +1,18 @@
 % plot
+function fun_decode_units_selectivity_plot(results,trig)
 colors=distinguishable_colors(10);
-fileload=[filesave_dec '_selectivity.mat'];
-datalat=load(fileload,'results');
-nstim=nev; % number of stimuli (needed below for multiple comparison across tastes)
+% fileload=[filesave_dec '_selectivity.mat'];
+% datalat=load(fileload,'results');
+nstim=length(trig); % number of stimuli (needed below for multiple comparison across tastes)
 % plot
+numfig = 100;
 pvalue=0.05/nstim;
 figure(numfig); numfig=numfig+1; clf; hold on;
 line([0 nstim],[100/nstim, 100/nstim],'linestyle','--');
 accuracy=NaN(1,nstim);
-accuracy(:)=100*diag(datalat.results.all.data.confusion);
+% accuracy(:)=100*diag(datalat.results.all.data.confusion);
+accuracy(:)=100*diag(results.all.data.confusion);
+
 for st=1:nstim
     her(st)=errorbar(st,accuracy(1,st),0,0);
     set(her(st),'Color',colors(st,:),'Marker','o','MarkerSize',10,...
@@ -17,7 +21,7 @@ end
 fprintf('Selectivity by decoding: ');
 for st=1:nstim; fprintf('%s=%0.03g%%, ',trig{st},accuracy(1,st)); end
 fprintf('\n                pvalues: ');
-pval=datalat.results.all.pvalue_stimulus;
+pval=results.all.pvalue_stimulus;
 for st=1:nstim; fprintf('p(%s)=%0.03g, ',trig{st},pval(st)); end
 indsig=find(pval<0.05/nstim);
 if ~isempty(indsig)
@@ -28,8 +32,8 @@ else
 end
 fprintf('\n');
 % shuffled
-accuracyshuff=100*diag(datalat.results.all.shuffled.confusion);
-ci=100*datalat.results.all.shuffled.accuracy_ci_perstimulus;
+accuracyshuff=100*diag(results.all.shuffled.confusion);
+ci=100*results.all.shuffled.accuracy_ci_perstimulus;
 her(nstim+1)=errorbar(1:nstim,accuracyshuff,accuracyshuff-ci(1:nstim,1),ci(1:nstim,2)-accuracyshuff);
 set(her(nstim+1),'Color','k','Marker','o','MarkerSize',5,...
     'MarkerEdgeColor','k','MarkerFaceColor' , [.7 .7 .7]);

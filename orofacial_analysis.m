@@ -24,11 +24,11 @@ for i = 1:length(expe)
     expe(i).Roro = mean(expe(i).OroFacial.Trial.RSpout,1);   
 end
 %% plot example trace with licking
-i = 7
-figure;
-plot(expe(1).OroFacial.edges,expe(i).Loro)
-hold on
-plot(expe(1).OroFacial.edges,expe(i).Roro)
+i = 5
+% figure;
+% plot(expe(1).OroFacial.edges,expe(i).Loro)
+% hold on
+% plot(expe(1).OroFacial.edges,expe(i).Roro)
 figure;
 plot(Oro_data(1).OroFacial.edges,mean(Oro_data(i).OroFacial.Trial.LSpout))
 hold on
@@ -58,6 +58,7 @@ time = time - expe(7).Events.LSpout(1);
 idx = find(time>-2 & time<1);
 hold on
 plot(time(idx),nexData.contvars{4,1}.data(idx))
+plot(time(idx),nexData.contvars{3,1}.data(idx))
 load('Sum2.mat')
 licking = Sum(16).event.raw_decision;
 licking_lat = licking{2,8};
@@ -71,7 +72,7 @@ for i = 1:length(expe)
     loro(i,:) = expe(i).Loro;
     roro(i,:) = expe(i).Roro;
 end
-
+figure
 h1 = boundedline(expe(7).OroFacial.edges, mean(loro,1), std(loro)/sqrt(size(loro,1)),'b')
 h2 = boundedline(expe(7).OroFacial.edges, mean(roro,1), std(roro)/sqrt(size(roro,1)),'r')
 xlim([-2,1])

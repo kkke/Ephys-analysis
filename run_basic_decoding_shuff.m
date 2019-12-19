@@ -2,17 +2,19 @@ function run_basic_decoding_shuff(shuff_num)
  
 % the following parameters are hard coded but could be input arguments to this function
 specific_binned_labels_names = 'stimulus_ID';  % use object identity labels to decode which object was shown 
-num_cv_splits = 10;     % use 30 cross-validation splits; I have 30 repeats; it is like leave one out 
-binned_data_file_name = 'tasteData_100ms_bins_100ms_sampled30repeats.mat'; % use the data that was previously binned 
+num_cv_splits = 11;     % use 30 cross-validation splits; I have 30 repeats; it is like leave one out 
+% binned_data_file_name = 'tasteData_100ms_bins_100ms_sampled30repeats.mat'; % use the data that was previously binned 
+binned_data_file_name = 'all_100ms_bins_100ms_sampled11repeats.mat'; % use the data that was previously binned 
  
 % the name of where to save the results
-save_file_name = 'results/population_decoding_results';
+save_file_name = 'results_v3/population_decoding_results';
  
  
 % create the basic objects needed for decoding
 ds = basic_DS(binned_data_file_name, specific_binned_labels_names,  num_cv_splits); % create the basic datasource object
 the_feature_preprocessors{1} = zscore_normalize_FP;  % create a feature preprocess that z-score normalizes each feature
 the_classifier = max_correlation_coefficient_CL;  % select a classifier
+% the_classifier = libsvm_CL;
 the_cross_validator = standard_resample_CV(ds, the_classifier, the_feature_preprocessors);  
  
 if shuff_num == 0
@@ -21,9 +23,11 @@ if shuff_num == 0
  
      % if running the regular results, create the regular cross-validator
      the_cross_validator = standard_resample_CV(ds, the_classifier, the_feature_preprocessors);  
-     the_cross_validator.num_resample_runs = 10;
+     the_cross_validator.num_resample_runs = 50; % only repeat it 10 times to get the variance
      % the name of where to save the results for regular (non-shuffled) decoding results as before
-     save_file_name = 'results/population_decoding_results';
+     save_file_name = 'results_v3/population_decoding_results';
+%      save_file_name = 'results_svm/population_decoding_results';
+
  
 else
  
@@ -41,7 +45,7 @@ else
     the_cross_validator.display_progress.resample_run_time = 0;
  
     % save the results with the appropriate name to the shuff_results/ directory
-    save_file_name = ['results/shuff_results/population_decoding_results_shuff_run_' num2str(shuff_num, '%03d')];
+    save_file_name = ['results_v3/shuff_results/population_decoding_results_shuff_run_' num2str(shuff_num, '%03d')];
  
 end
  

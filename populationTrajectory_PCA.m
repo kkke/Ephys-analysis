@@ -109,7 +109,7 @@ sem_similarAction = std(similarAction)/sqrt(size(similarAction,1));
 
 D_similarAction = 1/6 * (SM + QSO + SQ + MSO + SSO + MQ);
 D_similarAction = 1/4 * (SM + QSO + SSO + MQ);
-% D_similarAction = 1/2 * (SM + QSO);
+D_similarAction = 1/2 * (SM + QSO);
 m_DsimilarAction = mean(D_similarAction);
 sem_DsimilarAction = std(D_similarAction)/sqrt(size(D_similarAction,1));
 

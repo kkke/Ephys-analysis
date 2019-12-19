@@ -6,7 +6,7 @@
 %     Idx_dir(i) = Sum(i).auROC.Rcorr_vsLcorr.p;
 % end
 
-function Timecourse_decision(Sum,Idx,Idx_dir)
+function Timecourse_decision(Sum,Idx,Idx_dir,bothnon)
 %         Input:
 %               Sum: the data saved in Sum2.mat
 %               Idx: the Index of selective neuron
@@ -17,8 +17,19 @@ function Timecourse_decision(Sum,Idx,Idx_dir)
 %     Idx(i) = Sum(i).auROC.Rcorr_vsLcorr.stats.respFlag;
 %     Idx_dir(i) = Sum(i).auROC.Rcorr_vsLcorr.p;
 % end
-Idx_rp = find(Idx==1 & Idx_dir>0); % id for right  neuron
-Idx_lp = find(Idx==1 & Idx_dir<0); % id for left  neuron
+if nargin<4
+    bothnon = []; % id for taste selective preparatory activity
+else
+end
+if isempty(bothnon)
+    Idx_rp = find(Idx==1 & Idx_dir>0); % id for right  neuron
+    Idx_lp = find(Idx==1 & Idx_dir<0); % id for left  neuron
+else
+    idd = find(Idx ==1);
+    idd_t = idd(bothnon);
+    Idx_rp = intersect(idd_t, find(Idx_dir>0)); % id for taste selective preparatory neurons (right)
+    Idx_lp = intersect(idd_t, find(Idx_dir<0));  
+end
 %% Step2: Calculate the right direction preference across time ((auROC-0.5)*2)
 type = {'RightRew','LeftRew'};
 clear PSTH_auROC_R PSTH_auROC_L
@@ -27,7 +38,8 @@ post = 2000;
 for i = 1:length(Idx_rp)
     for j = 1:length(type)
         spike = Sum(Idx_rp(i)).PSTH.(type{j}).Corr.Spike;
-        event = Sum(Idx_rp(i)).PSTH.(type{j}).Corr.Event;
+%         event = Sum(Idx_rp(i)).PSTH.(type{j}).Corr.Event;
+        event = Sum(Idx_rp(i)).PSTH.(type{j}).Err.Event;
         data.(type{j}).psth  = spike2eventRasteandPSTH_NP(spike,event,100,pre,post);
     end
     PSTH_auROC_R(i,:) = psth_auROC_ke(data.(type{2}).psth.scmatrix, data.(type{1}).psth.scmatrix);
@@ -43,7 +55,9 @@ type = {'RightRew','LeftRew'};
 for i = 1:length(Idx_lp)
     for j = 1:length(type)
         spike = Sum(Idx_lp(i)).PSTH.(type{j}).Corr.Spike;
-        event = Sum(Idx_lp(i)).PSTH.(type{j}).Corr.Event;
+%         event = Sum(Idx_lp(i)).PSTH.(type{j}).Corr.Event;
+
+        event = Sum(Idx_lp(i)).PSTH.(type{j}).Err.Event;
         data.(type{j}).psth  = spike2eventRasteandPSTH_NP(spike,event,100,pre,post);
     end
     PSTH_auROC_L(i,:) = psth_auROC_ke(data.(type{2}).psth.scmatrix, data.(type{1}).psth.scmatrix);
@@ -76,3 +90,5 @@ ylim([-0.3,0.3])
 ylabel('Direction Planning Preference')
 xlabel('Time (s)')
 legend([h1,h2,h3],'Right selective','Left selective','Non-selective')
+
+auROC_colormap_decision(time,PSTH_auROC_R, PSTH_auROC_L)

@@ -41,6 +41,20 @@ for i = 1:length(id_uni)
 end
 clearvars -except data duration
 
+data = iti_decision_lateral(data);
+f = {'leftdecision','rightdecision'};
+for i = 1:length(id_uni)
+    iti_lateral(i).id     = id_uni{i};
+    idx = find(strcmp(id,id_uni{i}));
+    if length(idx) >=1
+        for j = 1:length(f)
+            iti_lateral(i).(f{j})      = mean([data(idx).([f{j},'_iti'])]);
+        end
+    else
+        error('Something is wrong')
+    end
+end
+
 %% Save the results as table 
 iti = struct2table(iti);
 duration_temp = struct2table(duration);

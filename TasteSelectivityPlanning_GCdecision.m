@@ -119,25 +119,139 @@ end
 clear bothnon
 x=1;
 for i = 1:length(taste)
-       if taste(i).MO.stats.respFlag && taste(i).SQ.stats.respFlag
+       if taste(i).MO.stats.respFlag || taste(i).SQ.stats.respFlag
            fprintf('Neuron %4.2f is taste selective \n',i)
            bothnon(x) = i;
            x = x+1;
        end
 end
+%% plot the left/right preference vs taste preference
+figure;
+for i = 1:length(taste)
+    taste_pall(i) = max([abs(taste(i).MO.p),abs(taste(i).SQ.p)]);
+    lr_pall(i)    = Sum(idx_p(i)).auROC.PlanRcorr_vsLcorr.p;
+end
+plot(abs(taste_pall),abs(lr_pall),'bo')
+
+for i = 1:length(bothnon)
+    taste_p(i) = max([abs(taste(bothnon(i)).MO.p),abs(taste(bothnon(i)).SQ.p)]);
+    lr_p(i)    = Sum(idx_p(bothnon(i))).auROC.PlanRcorr_vsLcorr.p;
+end
+
+hold on 
+plot(abs(taste_p),abs(lr_p),'ro')
+xlim([0,1])
+ylim([0,1])
+hold on
+plot([0,1],[0,1])
+axis square
+xlabel('Max taste selectivity')
+ylabel('Planning selectivity')
 %%
+save('PlanningTaste.mat','taste')
 %% try to show neurons
 close all
-i = 3;
-a = spike2eventRasteandPSTH_NP(taste(i).Mplanning.Spike,taste(i).Mplanning.Event,100,-1500,1500);
-b = spike2eventRasteandPSTH_NP(taste(i).Oplanning.Spike,taste(i).Oplanning.Event,100,-1500,1500);
-c = spike2eventRasteandPSTH_NP(taste(i).Splanning.Spike,taste(i).Splanning.Event,100,-1500,1500);
-d = spike2eventRasteandPSTH_NP(taste(i).Qplanning.Spike,taste(i).Qplanning.Event,100,-1500,1500);
+i = bothnon(29);
+M = spike2eventRasteandPSTH_NP(taste(i).Mplanning.Spike,taste(i).Mplanning.Event,100,-2000,1000);
+O = spike2eventRasteandPSTH_NP(taste(i).Oplanning.Spike,taste(i).Oplanning.Event,100,-2000,1000);
+S = spike2eventRasteandPSTH_NP(taste(i).Splanning.Spike,taste(i).Splanning.Event,100,-2000,1000);
+Q = spike2eventRasteandPSTH_NP(taste(i).Qplanning.Spike,taste(i).Qplanning.Event,100,-2000,1000);
 
-figure;
-figure; plot(a.FR_avg)
-hold on
-plot(b.FR_avg)
-plot(c.FR_avg)
-plot(d.FR_avg)
-legend({'M','O','S','Q'})
+% figure;
+% figure; plot(a.timepoint,a.FR_avg)
+% hold on
+% plot(b.timepoint,b.FR_avg)
+% plot(c.timepoint,c.FR_avg)
+% plot(d.timepoint,d.FR_avg)
+% legend({'M','O','S','Q'})
+% xlim([-2,1])
+
+    %%%%%%%%%%%%%%-----------Figure part- -----------%%%%%%%%%%%%%%%%
+    
+    colors=distinguishable_colors(5); %generate some vectors contaning col values
+    
+    figure;
+    %%raster
+    subplot (2,1,1);
+    tot_tr=[size(S.spikeraster,2), size(Q.spikeraster,2), size(M.spikeraster,2), size(O.spikeraster,2)];
+    
+    for t = 1:sum(tot_tr)
+        if (t <= (tot_tr(1)))
+            for sp = 1:size(S.spikeraster(t).times,2)
+                %                 Lin = line([S.spikeraster(t).times(sp) S.spikeraster(t).times(sp)],...
+                %                     [t-1 t]);
+                Lin = plot([S.spikeraster(t).times(sp),S.spikeraster(t).times(sp)],[t-1 t])
+                hold on
+                set(Lin,'Color',colors(1,:),'LineWidth',1);
+            end
+        elseif (t > (tot_tr(1)) &&  t <= (tot_tr(1)+tot_tr(2)))
+            for sp = 1:size(Q.spikeraster(t-size(S.spikeraster,2)).times,2)
+                Lin1 = plot([Q.spikeraster((t-size(S.spikeraster,2))).times(sp) Q.spikeraster((t-size(S.spikeraster,2))).times(sp)],...
+                    [t-1 t]);
+                set(Lin1,'Color',colors(2,:),'LineWidth',1);
+            end
+        elseif (t > (tot_tr(1)+tot_tr(2))&& t <= (tot_tr(1)+tot_tr(2)+tot_tr(3)))
+            for sp = 1:size(M.spikeraster(t-(size(S.spikeraster,2)+size(Q.spikeraster,2))).times,2)
+                Lin1 = plot([M.spikeraster(t-(size(S.spikeraster,2)+size(Q.spikeraster,2))).times(sp) M.spikeraster(t-(size(S.spikeraster,2)+size(Q.spikeraster,2))).times(sp)],...
+                    [t-1 t]);
+                set(Lin1,'Color',colors(3,:),'LineWidth',1);
+            end
+        elseif (t > (tot_tr(1)+tot_tr(2)+tot_tr(3))&& t <= (tot_tr(1)+tot_tr(2)+tot_tr(3)+tot_tr(4)))
+            for sp = 1:size(O.spikeraster(t-(size(S.spikeraster,2)+size(Q.spikeraster,2)+size(M.spikeraster,2))).times,2)
+                Lin1 = plot([O.spikeraster(t-(size(S.spikeraster,2)+size(Q.spikeraster,2)+size(M.spikeraster,2))).times(sp) O.spikeraster(t-(size(S.spikeraster,2)+size(Q.spikeraster,2)+size(M.spikeraster,2))).times(sp)],...
+                    [t-1 t]);
+                set(Lin1,'Color',colors(4,:),'LineWidth',1);
+            end
+        end
+    end
+    hold on;
+    %line([0 0],[0 sum(tot_tr)],'LineWidth',0.001,'Color','k');
+    box('off') ;
+    axis('off');
+    ylabel(gca,'Trials');
+    set(get(gca,'YLabel'),'Visible','on','fontsize',12);
+%     title([forFig.mouse{n,1} ' _ ' forFig.date{n,1} ' _ ' forFig.neuron{n,1} ' _ bin=' num2str(bin) 'ms']);
+    %
+    % psth
+    tsize = 3;
+    tsig  = 2;
+%     S.FR_avg = gaussmooth(S.FR_avg,tsize,tsig);
+%     Q.FR_avg = gaussmooth(Q.FR_avg,tsize,tsig);
+%     M.FR_avg = gaussmooth(M.FR_avg,tsize,tsig);
+%     O.FR_avg = gaussmooth(O.FR_avg,tsize,tsig);
+    subplot (2,1,2);
+    h = plot(S.timepoint,S.FR_avg);hold on;
+    set(h,'Color',colors(1,:));
+    h1= plot(S.timepoint,Q.FR_avg);hold on;
+    set(h1,'Color',colors(2,:));
+    h2= plot(S.timepoint,M.FR_avg);hold on;
+    set(h2,'Color',colors(3,:));
+    h3= plot(S.timepoint,O.FR_avg);hold on;
+    set(h3,'Color',colors(4,:));
+    %h3= plot([0 0],[0 round(max([R.FR_avg L.FR_avg]))],'--k');
+    
+    % set x axis
+%     xlim([time(1) time(2)]);
+%     xlabel('Time(s)');
+%     xticks([time(1) time(2)]);
+%     xticklabels({num2str(time(1)),num2str(time(2))});
+    
+    % set y axis
+    % set y axis
+    ylim([0 14]);
+    yticks([0 14]);
+    yticklabels({'0','14'});
+    ylabel('Firing rate');
+    
+    %title('goal-selective neurons')
+    set(gca,'fontsize',12);
+    box('off') ;
+    legend('S','Q','M','O');
+    
+    % prepare for annotation
+    xa = [0 0]; % X-Coordinates in data space
+    ya = [0 sum(tot_tr)]; % Y-Coordinates in data space
+    [xaf,yaf] = ds2nfu(xa,ya);
+    yaf(2)=0.9;
+    annotation('line',xaf,yaf);
+    clearvars -except Sum taste taste_p bothnon idx_p;

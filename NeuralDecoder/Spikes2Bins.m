@@ -22,8 +22,8 @@ for trial=1:ntrials
     spcnt_all=zeros(NBins,gnunits);
     for unit=1:gnunits
 %         if ~isempty(Spikes(trial,unit).spk)
-            %temp_data=Spikes(trial,unit).times;
-            temp_data=Spikes(trial,unit);
+            temp_data=Spikes(trial,unit).times;
+%             temp_data=Spikes(trial,unit);
 
             % spike counts
             spcnt=NaN(NBins,1);
