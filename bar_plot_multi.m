@@ -21,7 +21,7 @@ set(gca,'fontsize',12)
 set(gca,'TickLengt', [0.01 0.01]);
 if stats
     p = anova1(X);
-    print(p)
+    fprintf('p value is %f \n',p)
 end
 end
 
