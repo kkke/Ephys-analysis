@@ -1,6 +1,6 @@
 % add the path to the NDT so add_ndt_paths_and_init_rand_generator can be called
 clear
-toolbox_basedir_name = 'E:\MATLAB\ndt.1.0.4\'
+toolbox_basedir_name = 'D:\MATLAB\Ephys-analysis\ndt.1.0.4\'
 addpath(toolbox_basedir_name);
  
 % add the NDT paths using add_ndt_paths_and_init_rand_generator
