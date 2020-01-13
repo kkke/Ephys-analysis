@@ -8,31 +8,18 @@ end
 idx_p = find(resp ==1);
 %% Step2: try to get the psth of maltose  and sucrose octaacetate right trials but aligned to the lateral licks
 
-for j = 1:length(idx_p)
+for j = 1:length(Sum)
+    i = j;
     fprintf('Process neuron %4.2f \n',j)
-    i = idx_p(j);
-    T = Sum(i).event.tsRCorr.TasteDel; % get the taste delivery id
-    Tt = unique(T(:,2)); % taste delivery id
-%     M = Sum(i).event.tsRCorr.TasteID.M;
-%     O = Sum(i).event.tsRCorr.TasteID.O;
-%     M(:,2) = 1;
-%     O(:,2) = 2;
-%     MO = [M;O];
-%     [B, I] = sort(MO(:,1));
-%     id = MO(:,2);
-%     MO_idx = id(I);
-    taste(j).M = find(T(:,2) ==Tt(1)); % this is just for computing, maybe M is the 2nd
-    taste(j).O = find(T(:,2) ==Tt(2));
-    event = Sum(i).event.tsRCorr.FLickRSpou;
-    taste(j).Mplanning = spike2eventRasteandPSTH_NP (Sum(i).timestampN, event(taste(j).M), 1000, -1000, 0);
-    taste(j).Oplanning = spike2eventRasteandPSTH_NP (Sum(i).timestampN, event(taste(j).O), 1000, -1000, 0);
-    [taste(j).MO.p]    = Test_auROC_dISCRIMINATION  (taste(j).Mplanning.FRmatrix, taste(j).Oplanning.FRmatrix);
+    taste(j).Msampling = spike2eventRasteandPSTH_NP (Sum(i).timestampN, Sum(i).event.tsRCorr.TasteID.M, 500, 0, 500);
+    taste(j).Osampling = spike2eventRasteandPSTH_NP (Sum(i).timestampN, Sum(i).event.tsRCorr.TasteID.O, 500, 0, 500);
+    [taste(j).MO.p]    = Test_auROC_dISCRIMINATION  (taste(j).Msampling.FRmatrix, taste(j).Osampling.FRmatrix);
     
     % prepare for shuffle to compute statistic
     % put in a single vector the p values from Right and Left
-    [taste(j).MO.allp] = [taste(j).Mplanning.FRmatrix;taste(j).Oplanning.FRmatrix];
+    [taste(j).MO.allp] = [taste(j).Msampling.FRmatrix;taste(j).Osampling.FRmatrix];
     for jj =1:1000
-        [taste(j).MO.shuffl.M(:,jj), idx]= datasample(taste(j).MO.allp,size(taste(j).Mplanning.FRmatrix,1),'Replace',false);
+        [taste(j).MO.shuffl.M(:,jj), idx]= datasample(taste(j).MO.allp,size(taste(j).Msampling.FRmatrix,1),'Replace',false);
         idx1 = 1:size(taste(j).MO.allp,1);
         taste(j).MO.shuffl.O(:,jj)       =  taste(j).MO.allp(setdiff(idx1,idx));
         taste(j).MO.shuffl.p (:,jj)       = Test_auROC_dISCRIMINATION(taste(j).MO.shuffl.M(:,jj),taste(j).MO.shuffl.O(:,jj));
@@ -51,24 +38,11 @@ for j = 1:length(idx_p)
 end
 %% Step3: try to get the psth of sucrose  and  quinine left trials but aligned to the lateral licks
 
-for j = 1:length(idx_p)
+for j = 1:length(Sum)
     fprintf('Process neuron %4.2f \n',j)
-    i = idx_p(j);
-    T = Sum(i).event.tsLCorr.TasteDel;
-    Tt = unique(T(:,2));
-%     M = Sum(i).event.tsRCorr.TasteID.M;
-%     O = Sum(i).event.tsRCorr.TasteID.O;
-%     M(:,2) = 1;
-%     O(:,2) = 2;
-%     MO = [M;O];
-%     [B, I] = sort(MO(:,1));
-%     id = MO(:,2);
-%     MO_idx = id(I);
-    taste(j).S = find(T(:,2) ==Tt(1)); % This is just for computing, maby S is the 2nd
-    taste(j).Q = find(T(:,2) ==Tt(2));
-    event = Sum(i).event.tsLCorr.FLickLSpou;
-    taste(j).Splanning = spike2eventRasteandPSTH_NP (Sum(i).timestampN, event(taste(j).S), 1000, -1000, 0);
-    taste(j).Qplanning = spike2eventRasteandPSTH_NP (Sum(i).timestampN, event(taste(j).Q), 1000, -1000, 0);
+    i = j;
+    taste(j).Splanning = spike2eventRasteandPSTH_NP (Sum(i).timestampN, Sum(i).event.tsLCorr.TasteID.S, 500, 0, 500);
+    taste(j).Qplanning = spike2eventRasteandPSTH_NP (Sum(i).timestampN,Sum(i).event.tsLCorr.TasteID.Q, 500, 0, 500);
     [taste(j).SQ.p]    = Test_auROC_dISCRIMINATION  (taste(j).Splanning.FRmatrix, taste(j).Qplanning.FRmatrix);
     
     % prepare for shuffle to compute statistic
@@ -94,6 +68,7 @@ for j = 1:length(idx_p)
 end
 %% try to summarize to see which neurons show taste selectivity
 for i = 1:length(taste)
+    fprintf('Process neuron %4.2f \n',i)
     if taste(i).MO.stats.pvalue ==0 
        shu = taste(i).MO.shuffl.p;
        ok_p = length(find(taste(i).MO.p >= shu))/1000;
@@ -102,8 +77,9 @@ for i = 1:length(taste)
            fprintf('Neuron %4.2f is not good Left\n',i)
            taste(i).MO.stats.respFlag = 0;
        end
+    end
        
-    elseif taste(i).SQ.stats.pvalue ==0 
+    if taste(i).SQ.stats.pvalue ==0 
        shu2 = taste(i).SQ.shuffl.p;
        ok_p = length(find(taste(i).SQ.p >= shu2))/1000;
        oko_p= length(find(taste(i).SQ.p <= shu2))/1000;
@@ -111,10 +87,56 @@ for i = 1:length(taste)
            fprintf('Neuron %4.2f is not good Right\n',i)
            taste(i).SQ.stats.respFlag = 0;
        end
-       
+    end
+end
+%%
+%% Step4: try to get the psth of left trials but aligned to the central licks
+for j = 1:length(Sum)
+    fprintf('Process neuron %4.2f \n',j)
+    i = j;
+    event_L = sort([Sum(i).event.tsLCorr.TasteID.S; Sum(i).event.tsLCorr.TasteID.Q]);
+    taste(j).SQplanning = spike2eventRasteandPSTH_NP (Sum(i).timestampN, event_L, 500, 0, 500);
+    event_R = sort([Sum(i).event.tsRCorr.TasteID.M; Sum(i).event.tsRCorr.TasteID.O]);
+    taste(j).MOplanning = spike2eventRasteandPSTH_NP (Sum(i).timestampN,event_R, 500, 0, 500);
+    [taste(j).LR.p]    = Test_auROC_dISCRIMINATION  (taste(j).SQplanning.FRmatrix, taste(j).MOplanning.FRmatrix);
+    
+    % prepare for shuffle to compute statistic
+    % put in a single vector the p values from Right and Left
+    [taste(j).LR.allp] = [taste(j).SQplanning.FRmatrix;taste(j).MOplanning.FRmatrix];
+    for jj =1:1000
+        [taste(j).LR.shuffl.L(:,jj), idx]= datasample(taste(j).LR.allp,size(taste(j).SQplanning.FRmatrix,1),'Replace',false);
+        idx1 = 1:size(taste(j).LR.allp,1);
+        taste(j).LR.shuffl.R(:,jj)       =  taste(j).LR.allp(setdiff(idx1,idx));
+        taste(j).LR.shuffl.p(:,jj)       = Test_auROC_dISCRIMINATION(taste(j).LR.shuffl.L(:,jj),taste(j).LR.shuffl.R(:,jj));
+    end
+    if taste(j).LR.p<0
+        [taste(j).LR.stats.pvalue] = length(find(taste(j).LR.shuffl.p<taste(j).LR.p))/1000;
+    else
+        [taste(j).LR.stats.pvalue] = length(find(taste(j).LR.shuffl.p>taste(j).LR.p))/1000;
+    end
+    
+    if taste(j).LR.stats.pvalue<0.01
+        taste(j).LR.stats.respFlag=1;
+    else
+        taste(j).LR.stats.respFlag=0;
+    end
+end
+%%
+%% try to summarize to see which neurons show taste selectivity
+for i = 1:length(taste)
+    fprintf('Process neuron %4.2f \n',i)
+    if taste(i).LR.stats.pvalue ==0 
+       shu = taste(i).LR.shuffl.p;
+       ok_p = length(find(taste(i).LR.p >= shu))/1000;
+       oko_p= length(find(taste(i).LR.p <= shu))/1000;
+       if ok_p >=0.01 & oko_p >=0.01 % if this exist, it means shuffling preference and real preference has lots in common
+           fprintf('Neuron %4.2f is not good Left\n',i)
+           taste(i).LR.stats.respFlag = 0;
+       end     
     else
     end
 end
+save('Planning_Taste_Selectivity_allNeuron_samplingEpoch.mat','taste')
 %%
 clear bothnon
 x=1;
@@ -125,18 +147,37 @@ for i = 1:length(taste)
            x = x+1;
        end
 end
+clear bothnon_plan
+x=1;
+for i = 1:length(taste)
+       if taste(i).LR.stats.respFlag
+           fprintf('Neuron %4.2f is taste selective \n',i)
+           bothnon_plan(x) = i;
+           x = x+1;
+       end
+end
+
 %% plot the left/right preference vs taste preference
 figure;
-for i = 1:length(taste)
-    taste_pall(i) = max([abs(taste(i).MO.p),abs(taste(i).SQ.p)]);
-    lr_pall(i)    = Sum(idx_p(i)).auROC.PlanRcorr_vsLcorr.p;
+for i = 1:length(idx_p) % plot the planning and taste selectivity during the sampling epoch.
+    taste_pall(i) = max([abs(taste(idx_p(i)).MO.p),abs(taste(idx_p(i)).SQ.p)]);
+    lr_pall(i)    = taste(idx_p(i)).LR.p;
 end
 plot(abs(taste_pall),abs(lr_pall),'bo')
 
-for i = 1:length(bothnon)
-    taste_p(i) = max([abs(taste(bothnon(i)).MO.p),abs(taste(bothnon(i)).SQ.p)]);
-    lr_p(i)    = Sum(idx_p(bothnon(i))).auROC.PlanRcorr_vsLcorr.p;
+bothnon1 = intersect(bothnon,idx_p); % taste selectivity(sample)+ planning (delay)
+bothnon2 = intersect(bothnon_plan,idx_p); % planning (sample) + planning (delay)
+for i = 1:length(bothnon1)
+    taste_p(i) = max([abs(taste(bothnon1(i)).MO.p),abs(taste(bothnon1(i)).SQ.p)]);
+    lr_p(i)    = taste(bothnon1(i)).LR.p;
 end
+
+% for i = 1:length(bothnon2) % for highlighting the still planning
+%     taste_pp(i) = max([abs(taste(bothnon2(i)).MO.p),abs(taste(bothnon2(i)).SQ.p)]);
+%     lr_pp(i)    = taste(bothnon2(i)).LR.p;
+% end
+% hold on 
+% plot(abs(taste_pp),abs(lr_pp),'go')
 
 hold on 
 plot(abs(taste_p),abs(lr_p),'ro')
