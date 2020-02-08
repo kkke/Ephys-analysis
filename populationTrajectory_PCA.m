@@ -130,3 +130,8 @@ p = p*25;
 idx = p<0.05;
 time = data(1).unit_all.timepoint(idx);
 scatter(time,0.09* ones(size(time)),'ko')
+
+
+idx = find(data(1).unit_all.timepoint>=0 & data(1).unit_all.timepoint<2.5);
+a_similarAct = similarAction(:,idx);
+a_similarTaste = D_similarAction (:,idx);
