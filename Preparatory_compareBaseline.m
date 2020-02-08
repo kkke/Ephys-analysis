@@ -17,7 +17,7 @@ end
 idx_p = find(resp ==1);
 
 for i = 1:length(Sum)
-    preference(i) =Sum(i).auROC.PlanRcorr_vsLcorr.p        
+    preference(i) =Sum(i).auROC.PlanRcorr_vsLcorr.p;        
 end
 
 idx_p = find(resp ==1);
@@ -55,3 +55,5 @@ xlabel('Left: difference in firing rates (Delay-baseline)')
 ylabel('Right: difference in firing rates (Delay-baseline)')
 axis square
 %%
+sum(abs(L_firing)<abs(R_firing))
+sum(abs(L_firing_r)<abs(R_firing_r))
